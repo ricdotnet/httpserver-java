@@ -11,6 +11,11 @@ public class RequestHandler {
   BufferedReader in;
   BufferedWriter out;
 
+  /**
+   * Initiate the request and set the input stream and output stream
+   *
+   * @param client .
+   */
   public RequestHandler (Socket client) {
     System.out.println("New request in....");
     try {
@@ -24,10 +29,21 @@ public class RequestHandler {
     response = new Response(client, out);
   }
 
+  // TODO: These two methods below can be even more abstracted to allow for better request and response access
+  /**
+   * Allow access to the request object
+   *
+   * @return Request
+   */
   public Request getRequest () {
     return this.request;
   }
 
+  /**
+   * Allow access to the response object
+   *
+   * @return Response
+   */
   public Response getResponse () {
     return this.response;
   }

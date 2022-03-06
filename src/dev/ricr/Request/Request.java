@@ -30,21 +30,29 @@ public class Request {
 
   /**
    * Get the request method
+   *
    * @return String
    */
-  public String getMethod() {
+  public String getMethod () {
     return this.method;
   }
 
   /**
    * Get the request route
+   *
    * @return String
    */
-  public String getRoute() {
+  public String getRoute () {
     return this.route;
   }
 
-  public String getHeader(String header) {
+  /**
+   * Get a single header
+   *
+   * @param header .
+   * @return String
+   */
+  public String getHeader (String header) {
     return Headers.getHeaderValue(header);
   }
 

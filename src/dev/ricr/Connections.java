@@ -1,6 +1,7 @@
 package dev.ricr;
 
 import dev.ricr.Request.RequestHandler;
+import dev.ricr.Router.Route;
 import dev.ricr.Router.Router;
 
 import java.net.Socket;
@@ -21,7 +22,12 @@ public class Connections extends Thread {
     // register the request
     requestHandler = new RequestHandler(connection);
 
-    if (!router.findRoute(requestHandler.getRequest().getRoute())) {
+    // both request method and route need to match
+    String requestMethod = requestHandler.getRequest().getMethod();
+    String requestRoute = requestHandler.getRequest().getRoute();
+    int finalRoute = router.findRoute(requestMethod, requestRoute);
+
+    if (finalRoute == 0) {
       requestHandler
           .getResponse()
           .setStatus(400)
@@ -31,10 +37,18 @@ public class Connections extends Thread {
       return;
     }
 
+    if (finalRoute == 2) {
+      requestHandler
+          .getResponse()
+          .setStatus(200)
+          .setBody("{\"message\": \"found top route with no subroutes\"}")
+          .send();
+
+      return;
+    }
+
     requestHandler.getResponse().setStatus(200).setBody("hello").send();
 
-    // send the response
-//    requestHandler.getResponse().send();
   }
 
 }

@@ -27,7 +27,7 @@ public class Main {
     }
   }
 
-  public static void main (String[] args) {
+  public static void main (String[] args) throws ClassNotFoundException {
     Main main = new Main();
     main.init();
     System.out.println("Server is on and listening....");

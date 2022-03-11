@@ -1,25 +1,31 @@
 package dev.ricr.Router;
 
-public class Route {
+public class Route<T> {
 
   String method;
   String route;
+  T controller;
 
-  public Route get (String route) {
-    this.method = "GET";
+  public Route (String method, String route, T controller) {
+    this.method = method;
     this.route = route;
-
-    return this;
+    this.controller = controller;
   }
 
-  public Route post (String route) {
-    this.method = "POST";
-    this.route = route;
-
-    return this;
+  public String getMethod () {
+    return this.method;
   }
 
   public String getRoute () {
     return this.route;
+  }
+
+  public Class getClassName () {
+    try {
+      return Class.forName(this.controller.getClass().getName());
+    } catch (ClassNotFoundException e) {
+      e.printStackTrace();
+    }
+    return null;
   }
 }

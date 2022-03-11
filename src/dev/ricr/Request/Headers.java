@@ -16,7 +16,7 @@ public class Headers {
   public static void registerHeaders (BufferedReader in) {
     headers = new HashMap<String, String>(); // reset the hashmap on every request?
     String content;
-    List<String> lines = new ArrayList<String>();
+    List<String> lines = new ArrayList<>();
     try {
       while ((content = in.readLine()) != null) {
         lines.add(content);

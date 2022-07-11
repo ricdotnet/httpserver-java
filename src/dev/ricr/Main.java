@@ -1,11 +1,19 @@
 package dev.ricr;
 
+import dev.ricr.Annotations.Inject;
+import dev.ricr.Container.Container;
+import dev.ricr.Request.RequestHandler;
+import dev.ricr.Router.Router;
+import org.reflections.Reflections;
+
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.ServerSocket;
 
 public class Main {
 
   ServerSocket ss;
+  Connections c;
 
   public void init () {
     try {
@@ -16,21 +24,22 @@ public class Main {
     }
   }
 
-  private void connections () {
+  private void connections (Router router) {
     try {
       while (true) {
-        Connections c = new Connections(ss.accept());
-        c.start();
+        this.c = new Connections(ss.accept(), router);
+        this.c.start();
       }
     } catch (IOException e) {
       e.printStackTrace();
     }
   }
 
-  public static void main (String[] args) throws ClassNotFoundException {
+  public static void main (String[] args) {
     Main main = new Main();
     main.init();
+    Router router = new Router();
     System.out.println("Server is on and listening....");
-    main.connections();
+    main.connections(router);
   }
 }

@@ -1,7 +1,8 @@
 package dev.ricr;
 
+import dev.ricr.Annotations.Inject;
+import dev.ricr.Container.*;
 import dev.ricr.Request.RequestHandler;
-import dev.ricr.Router.Route;
 import dev.ricr.Router.Router;
 
 import java.net.Socket;
@@ -13,41 +14,42 @@ import java.net.Socket;
 public class Connections extends Thread {
   Socket client;
 
+  @Inject
   RequestHandler requestHandler;
-  Router router = new Router();
 
-  public Connections (Socket connection) {
+  public Connections (Socket connection, Router router) {
     client = connection;
 
     // register the request
     requestHandler = new RequestHandler(connection);
+    Container.addInstance(requestHandler.getClass().getName(), requestHandler);
 
     // both request method and route need to match
     String requestMethod = requestHandler.getRequest().getMethod();
     String requestRoute = requestHandler.getRequest().getRoute();
-    int finalRoute = router.findRoute(requestMethod, requestRoute);
+    router.findRoute(requestMethod, requestRoute);
 
-    if (finalRoute == 0) {
-      requestHandler
-          .getResponse()
-          .setStatus(400)
-          .setBody("{\"message\": \"could not find route\"}")
-          .send();
+//    if (finalRoute == 0) {
+//      requestHandler
+//          .getResponse()
+//          .setStatus(400)
+//          .setBody("{\"message\": \"could not find route\"}")
+//          .send();
+//
+//      return;
+//    }
 
-      return;
-    }
-
-    if (finalRoute == 2) {
-      requestHandler
-          .getResponse()
-          .setStatus(200)
-          .setBody("{\"message\": \"found top route with no subroutes\"}")
-          .send();
-
-      return;
-    }
-
-    requestHandler.getResponse().setStatus(200).setBody("hello").send();
+//    if (finalRoute == 2) {
+//      requestHandler
+//          .getResponse()
+//          .setStatus(200)
+//          .setBody("{\"message\": \"found top route with no subroutes\"}")
+//          .send();
+//
+//      return;
+//    }
+//
+//    requestHandler.getResponse().setStatus(200).setBody("hello").send();
 
   }
 

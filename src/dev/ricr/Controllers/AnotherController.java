@@ -1,23 +1,30 @@
 package dev.ricr.Controllers;
 
-import dev.ricr.Router.Controller;
-import dev.ricr.Router.Route;
+import dev.ricr.Annotations.Controller;
+import dev.ricr.Annotations.Get;
+import dev.ricr.Container.Container;
+import dev.ricr.Request.RequestHandler;
 
-// extending the Controller class we then call super() with the name of the top route
-// to add a route simply routes.add(new Route<AnotherController>("method", "/route", this))
-public class AnotherController extends Controller {
+@Controller(path = "/another")
+public class AnotherController {
 
-  public AnotherController () {
-    super("/another");
-    routes.add(new Route<>("GET", "/test", this));
-    routes.add(new Route<>("POST", "/some", this));
+  @Get(path = "/test")
+  public void testMethod () {
+    try {
+      Thread.sleep(10000);
+      RequestHandler requestHandler = (RequestHandler) Container.getInstance(RequestHandler.class.getName());
+      requestHandler
+          .getResponse()
+          .setStatus(400)
+          .setBody("{\"message\": \"test route\"}")
+          .send();
+    } catch (InterruptedException e) {
+       // ignore
+    }
   }
 
-  public void test () {
-    System.out.println("testing this?");
-  }
-
-  public void some() {
+  @Get(path = "/some")
+  public void someMethod () {
     System.out.println("hello there i guess?");
   }
 }

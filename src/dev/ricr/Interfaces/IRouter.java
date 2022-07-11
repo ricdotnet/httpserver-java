@@ -1,11 +1,13 @@
 package dev.ricr.Interfaces;
 
-import dev.ricr.Router.Controller;
-import java.util.List;
+import dev.ricr.Router.Route;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public interface IRouter {
 
-  void setRoutes();
-  List<Controller> getRoutes();
+  void buildRoutes();
+  HashMap<String, ArrayList<Route<Object>>> getRoutes();
 
 }

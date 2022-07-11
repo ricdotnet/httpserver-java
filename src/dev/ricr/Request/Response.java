@@ -56,7 +56,7 @@ public class Response {
    * Send the response and close the request socket
    */
   public void send () {
-    System.out.println("sending response?");
+//    System.out.println("sending response?");
     try {
       out.write("HTTP/1.1 " + this.statusCode + " OK\r\n");
       out.write("Content-Type: application/json\r\n");

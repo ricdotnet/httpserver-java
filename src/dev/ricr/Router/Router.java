@@ -1,61 +1,90 @@
 package dev.ricr.Router;
 
-import dev.ricr.Controllers.AnotherController;
-import dev.ricr.Controllers.TestController;
+import dev.ricr.Annotations.Controller;
+import dev.ricr.Annotations.Get;
+import dev.ricr.Annotations.Inject;
+import dev.ricr.Exceptions.NoControllerAnnotationException;
 import dev.ricr.Interfaces.IRouter;
+import org.reflections.Reflections;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class Router implements IRouter {
 
-  private final List<Controller> routes = new ArrayList<>();
+  private final HashMap<String, ArrayList<Route<Object>>> routes = new HashMap<String, ArrayList<Route<Object>>>();
+
+  private Router router;
 
   public Router () {
-    this.setRoutes();
+    this.buildRoutes();
   }
 
   @Override
-  public void setRoutes () {
-    routes.add(new TestController());
-    routes.add(new AnotherController());
+  public void buildRoutes () {
+
+    try {
+      Reflections reflections = new Reflections("dev.ricr");
+      Set<Class<?>> classes = reflections.getTypesAnnotatedWith(Controller.class);
+
+      for (Class<?> c : classes) {
+        if (!c.isAnnotationPresent(Controller.class)) {
+          throw new NoControllerAnnotationException(c.getName() + " is not defined with the @Controller() Annotation.");
+        }
+
+        String path = c.getAnnotation(Controller.class).path();
+        routes.put(path, new ArrayList<>());
+
+        ArrayList<Route<Object>> children = routes.get(path);
+        for (Method method : c.getMethods()) {
+          if (!method.isAnnotationPresent(Get.class)) continue;
+
+          String child = method.getAnnotation(Get.class).path();
+          children.add(new Route<>("GET", child, method, c.newInstance()));
+        }
+      }
+    } catch (InstantiationException | IllegalAccessException e) {
+      e.printStackTrace();
+    }
   }
 
-  public List<Controller> getRoutes () {
+  public HashMap<String, ArrayList<Route<Object>>> getRoutes () {
     return routes;
   }
 
-  // need to refer to this method both the method and the route
-  // we will need the method to then match with the sub route on the controller
-  // the route gets split, we find the main route and then match with the sub route
-  public int findRoute (String m, String r) {
-
-    String[] paths = r.split("/");
-    String controllerPath = "/" + paths[1]; // the path comes with a / at the beginning so index 0 will be empty
-
-    for (Controller controller : routes) {
-      if (controller.getRoute().equals(controllerPath)) {
-        for (Route<?> route : controller.getRoutes()) {
-          String subRoute = "/" + paths[2];
-          if (route.getMethod().equals(m) && route.getRoute().equals(subRoute)) {
-            String func = route.getRoute().split("/")[1];
-            try {
-              Method n = controller.getClass().getDeclaredMethod(func);
-              n.invoke(controller);
-            } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
-              e.printStackTrace();
-            }
-            return 1;
-          }
-        }
-
-        return 2;
-      }
+  public void findRoute (String method, String path) {
+    String[] segments = path.split("/", 3);
+    String parent = "/" + segments[1];
+    String children = "";
+    if (segments.length > 2) {
+      children = "/" + segments[2];
     }
 
-    return 0;
+    ArrayList<Route<Object>> route;
+    if ((route = routes.get(parent)) != null) {
+      System.out.println("There is a parent route....");
+
+      for (Route<Object> rr : route) {
+        if (rr.getPath().equals(children)) {
+          System.out.println("Found a child route.");
+          try {
+            rr.getMethod().invoke(rr.getController());
+          } catch (IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+          }
+        }
+      }
+
+      System.out.println("But there is nothing to return...");
+    }
   }
 
+  public Router getRouter () {
+    if (router == null) {
+      this.router = new Router();
+    }
+    return router;
+  }
 }

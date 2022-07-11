@@ -17,7 +17,6 @@ public class RequestHandler {
    * @param client .
    */
   public RequestHandler (Socket client) {
-    System.out.println("New request in....");
     try {
       in = new BufferedReader(new InputStreamReader(client.getInputStream()));
       out = new BufferedWriter(new OutputStreamWriter(client.getOutputStream()));

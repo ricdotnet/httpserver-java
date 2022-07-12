@@ -1,36 +1,29 @@
 package dev.ricr.Controllers;
 
 import dev.ricr.Annotations.Controller;
-import dev.ricr.Annotations.Get;
-import dev.ricr.Request.RequestHandler;
-import dev.ricr.Services.AnotherService;
+import dev.ricr.Annotations.Post;
+import dev.ricr.Request.Request;
+import dev.ricr.Request.Response;
 import dev.ricr.Services.TestService;
 
 @Controller(path = "/test")
 public class TestController {
 
   TestService testService;
-  AnotherService anotherService;
 
-  public TestController(TestService testService, AnotherService anotherService) {
+  public TestController(TestService testService) {
     this.testService = testService;
-    this.anotherService = anotherService;
   }
 
-  @Get(path = "/test")
-  public void hello (RequestHandler requestHandler) {
-  }
+  @Post(path = "/some/{username}")
+  public void somethingPost (Request request, Response response) {
 
-  @Get(path = "/some")
-  public void something (RequestHandler requestHandler) {
+    String username = request.getParam("username");
+    System.out.println(request.getBody());
 
-    testService.serviceMethod();
-    anotherService.someService();
-
-    requestHandler
-        .getResponse()
+    response
         .setStatus(200)
-        .setBody("{\"message\": \"something responded\"}")
+        .setBody("{\"message\": \""+ username + " smells\"}")
         .send();
   }
 

@@ -8,6 +8,6 @@ import java.util.HashMap;
 public interface IRouter {
 
   void buildRoutes();
-  HashMap<String, ArrayList<Route<Object>>> getRoutes();
+  HashMap<String, ArrayList<Route<Object>>> getRoutesMap();
 
 }

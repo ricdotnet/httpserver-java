@@ -1,14 +1,13 @@
 package dev.ricr.Router;
 
 import dev.ricr.Annotations.Controller;
-import dev.ricr.Annotations.Get;
 import dev.ricr.Annotations.Service;
 import dev.ricr.Container.Container;
 import dev.ricr.Exceptions.NoControllerAnnotationException;
 import dev.ricr.Exceptions.NoServiceAnnotationException;
 import dev.ricr.Interfaces.IRouter;
+import dev.ricr.Request.Methods;
 import dev.ricr.Request.RequestHandler;
-import dev.ricr.Services.TestService;
 import org.reflections.Reflections;
 
 import java.lang.reflect.Constructor;
@@ -18,7 +17,7 @@ import java.util.*;
 
 public class Router implements IRouter {
 
-  private final HashMap<String, ArrayList<Route<Object>>> routes = new HashMap<String, ArrayList<Route<Object>>>();
+  private final HashMap<String, ArrayList<Route<Object>>> routesMap = new HashMap<>();
 
   private Router router;
 
@@ -28,7 +27,6 @@ public class Router implements IRouter {
 
   @Override
   public void buildRoutes () {
-
     try {
       Reflections reflections = new Reflections("dev.ricr");
       Set<Class<?>> classes = reflections.getTypesAnnotatedWith(Controller.class);
@@ -49,7 +47,7 @@ public class Router implements IRouter {
         for (int i = 0; i < params.length; i++) {
           try {
             Class<?> serviceClass = params[i];
-            if (!serviceClass.isAnnotationPresent(Service.class)){
+            if (!serviceClass.isAnnotationPresent(Service.class)) {
               throw new NoServiceAnnotationException(serviceClass.getName() + " is not defined with the @Service Annotation.");
             }
 
@@ -66,16 +64,22 @@ public class Router implements IRouter {
         }
 
         String path = clazz.getAnnotation(Controller.class).path();
-        routes.put(path, new ArrayList<>());
+        routesMap.put(path, new ArrayList<>());
 
-        ArrayList<Route<Object>> children = routes.get(path);
-        for (Method method : clazz.getMethods()) {
-          if (!method.isAnnotationPresent(Get.class)) continue;
+        ArrayList<Route<Object>> children = routesMap.get(path);
+        for (Method method : clazz.getDeclaredMethods()) {
+
+          if (method.getAnnotations().length == 0) continue;
+
+          String[] methodTypeStrings = method.getAnnotations()[0].annotationType().getName().split("\\.");
+          String routeMethod = methodTypeStrings[methodTypeStrings.length - 1].toUpperCase();
+
+          if (!RouterUtils.isValidRouteMethod(routeMethod)) continue;
 
           Object c = Container.getInstance(clazz.getName());
 
-          String child = method.getAnnotation(Get.class).path();
-          children.add(new Route<>("GET", child, method, c));
+          String child = RouterUtils.getAnnotationPath(method, method.getAnnotations()[0].annotationType().getName());
+          children.add(new Route<>(routeMethod, child, method, c));
         }
       }
     } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
@@ -83,31 +87,38 @@ public class Router implements IRouter {
     }
   }
 
-  public HashMap<String, ArrayList<Route<Object>>> getRoutes () {
-    return routes;
+  public HashMap<String, ArrayList<Route<Object>>> getRoutesMap () {
+    return routesMap;
   }
 
+  /**
+   * Find the matched route from the router list.
+   *
+   * @param method The route method verb {@link Methods}.
+   * @param path   The full route path.
+   */
   public void findRoute (String method, String path) {
-    String[] segments = path.split("/", 3);
-    String parent = "/" + segments[1];
+    String[] pathParts = path.split("/", 3);
+    String parent = "/" + pathParts[1];
     String children = "";
-    if (segments.length > 2) {
-      children = "/" + segments[2];
+    if (pathParts.length > 2) {
+      children = "/" + pathParts[2];
     }
 
-    System.out.println("Request to: " + path);
-    ArrayList<Route<Object>> route;
-    if ((route = routes.get(parent)) != null) {
+    System.out.println(method.toUpperCase() + " Request to: " + path);
+    ArrayList<Route<Object>> routes;
+    if ((routes = routesMap.get(parent)) != null) {
 
-      for (Route<Object> rr : route) {
-        if (rr.getPath().equals(children)) {
+      for (Route<Object> route : routes) {
+        if (RouterUtils.routeMatches(route.getPath(), children) && route.getVerb().equals(method)) {
           try {
 
             // this will inject the request handler into the method allowing us to then access it when writing a route
             RequestHandler requestHandler =
                 (RequestHandler) Container.getInstance(RequestHandler.class.getName() + Thread.currentThread().getName());
 
-            rr.getMethod().invoke(rr.getController(), requestHandler);
+            Object[] routeHandlers = {requestHandler.getRequest(), requestHandler.getResponse()};
+            route.getMethod().invoke(route.getController(), routeHandlers);
             return;
           } catch (IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
@@ -118,8 +129,8 @@ public class Router implements IRouter {
       System.out.println("But there is nothing to return...");
     }
 
-      send404();
-    }
+    send404();
+  }
 
   public Router getRouter () {
     if (router == null) {
@@ -128,7 +139,7 @@ public class Router implements IRouter {
     return router;
   }
 
-  private void send404() {
+  private void send404 () {
     RequestHandler requestHandler =
         (RequestHandler) Container.getInstance(RequestHandler.class.getName() + Thread.currentThread().getName());
     requestHandler.getResponse().setStatus(200).setBody("{\"error\": 404, \"message\": \"page not found\"}").send();

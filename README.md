@@ -7,9 +7,9 @@ When somewhat stable I will use on some of my APIs.
 
 - [x] Request and response objects
 <!-- - [ ] Reflection (although it kinda works needs a lot of work still) -->
-- [ ] Multi socket for requests
+- [x] Multi socket for requests
 - [ ] Response headers
 - [ ] Body serializer (json <-> java object)
-- [ ] Better route system
-- [ ] Route parameters
+- [x] Better route system (kinda works OK)
+- [x] Route parameters
 - [ ] Middlewares

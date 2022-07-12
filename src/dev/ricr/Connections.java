@@ -11,23 +11,16 @@ import java.net.Socket;
  * Just a test class to test the request connection
  * Needs to be better abstracted
  */
-public class Connections extends Thread {
+public class Connections implements Runnable {
   Socket client;
+  Router router;
 
   @Inject
   RequestHandler requestHandler;
 
   public Connections (Socket connection, Router router) {
-    client = connection;
-
-    // register the request
-    requestHandler = new RequestHandler(connection);
-    Container.addInstance(requestHandler.getClass().getName(), requestHandler);
-
-    // both request method and route need to match
-    String requestMethod = requestHandler.getRequest().getMethod();
-    String requestRoute = requestHandler.getRequest().getRoute();
-    router.findRoute(requestMethod, requestRoute);
+    this.client = connection;
+    this.router = router;
 
 //    if (finalRoute == 0) {
 //      requestHandler
@@ -51,6 +44,20 @@ public class Connections extends Thread {
 //
 //    requestHandler.getResponse().setStatus(200).setBody("hello").send();
 
+  }
+
+  public void run() {
+    // register the request
+    requestHandler = new RequestHandler(this.client);
+    Container.addInstance(RequestHandler.class.getName() + Thread.currentThread().getName(), requestHandler);
+
+    // both request method and route need to match
+    String requestMethod = requestHandler.getRequest().getMethod();
+    String requestRoute = requestHandler.getRequest().getRoute();
+    router.findRoute(requestMethod, requestRoute);
+
+    // remove all request objects from the container
+    Container.removeInstance(RequestHandler.class.getName() + Thread.currentThread().getName());
   }
 
 }

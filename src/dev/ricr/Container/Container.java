@@ -11,9 +11,13 @@ public class Container {
   }
 
   public static void addInstance (String key, Object instance) {
-//    if (getInstance(key) == null) {
+    if (getInstance(key) == null) {
       container.put(key, instance);
-//    }
+    }
+  }
+
+  public static void removeInstance(String key) {
+    container.remove(key);
   }
 
   public static Object getInstance (String key) {

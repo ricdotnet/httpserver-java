@@ -57,6 +57,10 @@ public class Request {
     return headers.get(header.toLowerCase());
   }
 
+  public HashMap<String, String> getHeaders() {
+    return this.headers;
+  }
+
   /**
    * @param key   Key of the value to add on the params list.
    * @param value Value of the param to add on the list.

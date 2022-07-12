@@ -2,13 +2,15 @@ package dev.ricr.Context;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
+import java.lang.management.ThreadMXBean;
 import java.net.Socket;
 
 public class Response {
 
   Socket client;
   BufferedWriter out;
-  StringBuilder body;
+  StringBuilder body = new StringBuilder();
 
   int statusCode = 200; // 200 by default
   int contentLength = 0; // 0 by default

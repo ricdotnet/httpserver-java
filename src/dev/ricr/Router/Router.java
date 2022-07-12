@@ -105,7 +105,7 @@ public class Router implements IRouter {
       children = "/" + pathParts[2];
     }
 
-    System.out.println(method.toUpperCase() + " Request to: " + path);
+//    System.out.println(method.toUpperCase() + " Request to: " + path);
     ArrayList<Route<Object>> routes;
     if ((routes = routesMap.get(parent)) != null) {
 
@@ -126,7 +126,7 @@ public class Router implements IRouter {
         }
       }
 
-      System.out.println("But there is nothing to return...");
+//      System.out.println("But there is nothing to return...");
     }
 
     send404();
@@ -142,6 +142,6 @@ public class Router implements IRouter {
   private void send404 () {
     RequestHandler requestHandler =
         (RequestHandler) Container.getInstance(RequestHandler.class.getName() + Thread.currentThread().getName());
-    requestHandler.getResponse().setStatus(200).setBody("{\"error\": 404, \"message\": \"page not found\"}").send();
+    requestHandler.getResponse().setStatus(404).setBody("{\"error\": 404, \"message\": \"page not found\"}").send();
   }
 }

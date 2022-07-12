@@ -6,8 +6,8 @@ import dev.ricr.Container.Container;
 import dev.ricr.Exceptions.NoControllerAnnotationException;
 import dev.ricr.Exceptions.NoServiceAnnotationException;
 import dev.ricr.Interfaces.IRouter;
-import dev.ricr.Request.Methods;
-import dev.ricr.Request.RequestHandler;
+import dev.ricr.Context.Methods;
+import dev.ricr.Context.RequestHandler;
 import org.reflections.Reflections;
 
 import java.lang.reflect.Constructor;

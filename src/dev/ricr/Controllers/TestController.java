@@ -2,8 +2,8 @@ package dev.ricr.Controllers;
 
 import dev.ricr.Annotations.Controller;
 import dev.ricr.Annotations.Post;
-import dev.ricr.Request.Request;
-import dev.ricr.Request.Response;
+import dev.ricr.Context.Request;
+import dev.ricr.Context.Response;
 import dev.ricr.Services.TestService;
 
 @Controller(path = "/test")

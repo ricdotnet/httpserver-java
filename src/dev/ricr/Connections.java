@@ -2,7 +2,7 @@ package dev.ricr;
 
 import dev.ricr.Annotations.Inject;
 import dev.ricr.Container.*;
-import dev.ricr.Request.RequestHandler;
+import dev.ricr.Context.RequestHandler;
 import dev.ricr.Router.Router;
 
 import java.net.Socket;
@@ -21,29 +21,6 @@ public class Connections implements Runnable {
   public Connections (Socket connection, Router router) {
     this.client = connection;
     this.router = router;
-
-//    if (finalRoute == 0) {
-//      requestHandler
-//          .getResponse()
-//          .setStatus(400)
-//          .setBody("{\"message\": \"could not find route\"}")
-//          .send();
-//
-//      return;
-//    }
-
-//    if (finalRoute == 2) {
-//      requestHandler
-//          .getResponse()
-//          .setStatus(200)
-//          .setBody("{\"message\": \"found top route with no subroutes\"}")
-//          .send();
-//
-//      return;
-//    }
-//
-//    requestHandler.getResponse().setStatus(200).setBody("hello").send();
-
   }
 
   public void run() {

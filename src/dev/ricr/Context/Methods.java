@@ -1,4 +1,4 @@
-package dev.ricr.Request;
+package dev.ricr.Context;
 
 public enum Methods {
   GET,

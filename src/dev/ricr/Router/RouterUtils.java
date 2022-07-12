@@ -2,11 +2,10 @@ package dev.ricr.Router;
 
 import dev.ricr.Annotations.*;
 import dev.ricr.Container.Container;
-import dev.ricr.Request.Methods;
-import dev.ricr.Request.RequestHandler;
+import dev.ricr.Context.Methods;
+import dev.ricr.Context.RequestHandler;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
 
 public class RouterUtils {
 

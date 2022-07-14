@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -14,19 +15,26 @@ public class Request {
   private String body;
   private final HashMap<String, String> headers = new HashMap<>();
   private final HashMap<String, String> params = new HashMap<>();
+  private final HashMap<String, String> queries = new HashMap<>();
 
-  public Request (Socket client, BufferedReader in) {
+  private Socket client;
+  private BufferedReader in;
+
+  public Request (Socket client, BufferedReader in, String firstLine) {
     try {
-      this.prepareMethodAndRoute(in.readLine().split("\n"));
+      this.client = client;
+      this.in = in;
+
+      this.prepareMethodAndRoute(firstLine);
       this.processInputStream(in);
-    } catch (IOException e) {
-      e.printStackTrace();
+    } catch (NullPointerException e) {
+      System.out.println("something broke?");
     }
   }
 
-  private void prepareMethodAndRoute (String[] firstLine) {
-    this.method = firstLine[0].split(" ")[0].trim();
-    this.route = firstLine[0].split(" ")[1].trim();
+  private void prepareMethodAndRoute (String firstLine) {
+    this.method = firstLine.split(" ")[0].trim();
+    this.route = firstLine.split(" ")[1].trim();
   }
 
   /**
@@ -57,7 +65,7 @@ public class Request {
     return headers.get(header.toLowerCase());
   }
 
-  public HashMap<String, String> getHeaders() {
+  public HashMap<String, String> getHeaders () {
     return this.headers;
   }
 
@@ -74,6 +82,14 @@ public class Request {
    */
   public String getParam (String key) {
     return this.params.get(key);
+  }
+
+  public void setQuery (String key, String value) {
+    this.queries.put(key, value);
+  }
+
+  public String getQuery(String key) {
+    return this.queries.get(key);
   }
 
   public void setBody (String body) {
@@ -120,6 +136,14 @@ public class Request {
         IOException e) {
       e.printStackTrace();
     }
+  }
+
+  public Socket getClient () {
+    return this.client;
+  }
+
+  public BufferedReader getReader () {
+    return this.in;
   }
 
 }

@@ -3,6 +3,8 @@ package dev.ricr.Router;
 import dev.ricr.Annotations.Controller;
 import dev.ricr.Annotations.Service;
 import dev.ricr.Container.Container;
+import dev.ricr.Context.Request;
+import dev.ricr.Context.Response;
 import dev.ricr.Exceptions.NoControllerAnnotationException;
 import dev.ricr.Exceptions.NoServiceAnnotationException;
 import dev.ricr.Interfaces.IRouter;
@@ -18,6 +20,7 @@ import java.util.*;
 public class Router implements IRouter {
 
   private final HashMap<String, ArrayList<Route<Object>>> routesMap = new HashMap<>();
+  private final HashMap<String, StaticRoute> staticRoutes = new HashMap<>();
 
   private Router router;
 
@@ -100,33 +103,18 @@ public class Router implements IRouter {
   public void findRoute (String method, String path) {
     String[] pathParts = path.split("/", 3);
     String parent = "/" + pathParts[1];
-    String children = "";
-    if (pathParts.length > 2) {
-      children = "/" + pathParts[2];
-    }
 
-//    System.out.println(method.toUpperCase() + " Request to: " + path);
-    ArrayList<Route<Object>> routes;
-    if ((routes = routesMap.get(parent)) != null) {
+    // this will inject the request handler into the method allowing us to then access it when writing a route
+    RequestHandler requestHandler =
+        (RequestHandler) Container.getInstance(RequestHandler.class.getName() + Thread.currentThread().getName());
 
-      for (Route<Object> route : routes) {
-        if (RouterUtils.routeMatches(route.getPath(), children) && route.getVerb().equals(method)) {
-          try {
+    Object[] routeHandlers = {requestHandler.getRequest(), requestHandler.getResponse()};
 
-            // this will inject the request handler into the method allowing us to then access it when writing a route
-            RequestHandler requestHandler =
-                (RequestHandler) Container.getInstance(RequestHandler.class.getName() + Thread.currentThread().getName());
-
-            Object[] routeHandlers = {requestHandler.getRequest(), requestHandler.getResponse()};
-            route.getMethod().invoke(route.getController(), routeHandlers);
-            return;
-          } catch (IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
-          }
-        }
-      }
-
-//      System.out.println("But there is nothing to return...");
+    try {
+      if (isStaticFile(parent, routeHandlers)) return;
+      if (findMatch(parent, pathParts[2], method, routeHandlers)) return;
+    } catch (IndexOutOfBoundsException e) {
+      // ignore to send a 404
     }
 
     send404();
@@ -139,9 +127,47 @@ public class Router implements IRouter {
     return router;
   }
 
+  public void addStatic (String path, String dir) {
+    this.staticRoutes.put(path, new StaticRoute(path, dir));
+  }
+
+  private void serveStatic () {
+
+  }
+
   private void send404 () {
     RequestHandler requestHandler =
         (RequestHandler) Container.getInstance(RequestHandler.class.getName() + Thread.currentThread().getName());
     requestHandler.getResponse().setStatus(404).setBody("{\"error\": 404, \"message\": \"page not found\"}").send();
+  }
+
+  private boolean isStaticFile (String parent, Object[] routeHandlers) {
+    if (staticRoutes.get(parent) != null) {
+      StaticRoute staticRoute = staticRoutes.get(parent).getInstance();
+      try {
+        Method m = staticRoute.getClass().getDeclaredMethod("serveStatic", Request.class, Response.class);
+        m.invoke(staticRoute, routeHandlers);
+      } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
+        e.printStackTrace();
+      }
+      return true;
+    }
+    return false;
+  }
+
+  private boolean findMatch (String parent, String path, String method, Object[] routeHandlers) {
+    if (routesMap.get(parent) != null) {
+      for (Route<Object> route : routesMap.get(parent)) {
+        if (RouterUtils.routeMatches(route.getPath(), path) && route.getVerb().equals(method)) {
+          try {
+            route.getMethod().invoke(route.getController(), routeHandlers);
+            return true;
+          } catch (IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+          }
+        }
+      }
+    }
+    return false;
   }
 }

@@ -6,6 +6,7 @@ import dev.ricr.Context.Methods;
 import dev.ricr.Context.RequestHandler;
 
 import java.lang.reflect.Method;
+import java.net.URI;
 
 public class RouterUtils {
 
@@ -25,20 +26,24 @@ public class RouterUtils {
   }
 
   /**
-   *
-   * @param current
-   *        Route taken from the router list.
-   * @param visited
-   *        Route that the user tried to visit.
+   * @param current Route taken from the router list.
+   * @param visited Route that the user tried to visit.
    * @return A boolean value of whether the route is valid or not.
    */
-  public static boolean routeMatches(String current, String visited) {
+  public static boolean routeMatches (String current, String visited) {
     String preparedRoute = current.replaceAll("([{][a-zA-Z\\d]+[}])", "([a-zA-Z0-9]+)");
+    String preparedVisited = "/" + removeTrailingSlash(URI.create(visited).getPath());
 
-    boolean matches = visited.matches(preparedRoute);
+    String query = URI.create(visited).getQuery();
+    if (query != null) {
+      String[] queryPairs = query.split("&");
+      if (queryPairs.length > 0) saveRouteQueryParams(queryPairs);
+    }
+
+    boolean matches = preparedVisited.matches(preparedRoute);
 
     if (matches) {
-      saveRouteParams(current, visited);
+      saveRouteParams(current, preparedVisited);
     }
 
     return matches;
@@ -75,7 +80,7 @@ public class RouterUtils {
     return null;
   }
 
-  private static void saveRouteParams(String current, String visited) {
+  private static void saveRouteParams (String current, String visited) {
     String[] currentParts = current.split("/");
     String[] visitedParts = visited.split("/");
 
@@ -87,6 +92,24 @@ public class RouterUtils {
         requestHandler.getRequest().setParam(currentParts[i].replace("{", "").replace("}", ""), visitedParts[i]);
       }
     }
+  }
+
+  private static void saveRouteQueryParams (String[] queryPairs) {
+    RequestHandler requestHandler =
+        (RequestHandler) Container.getInstance(RequestHandler.class.getName() + Thread.currentThread().getName());
+
+    for (String pair : queryPairs) {
+      String[] keyValue = pair.split("=");
+      requestHandler.getRequest().setQuery(keyValue[0], keyValue[1]);
+    }
+  }
+
+  private static String removeTrailingSlash (String pathParts) {
+    if (pathParts.charAt(pathParts.length() - 1) == '/') {
+      return pathParts.substring(0, pathParts.length() - 1);
+    }
+
+    return pathParts;
   }
 
 }

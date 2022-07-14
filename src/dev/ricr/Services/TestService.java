@@ -5,8 +5,8 @@ import dev.ricr.Annotations.Service;
 @Service
 public class TestService {
 
-  public void serviceMethod() {
-    System.out.println("running a service method.");
+  public void serviceMethod(String country) {
+    System.out.println("printing country from the service: " + country);
   }
 
 }

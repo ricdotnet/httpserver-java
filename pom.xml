@@ -6,7 +6,7 @@
     <artifactId>Echo</artifactId>
     <version>1.0-SNAPSHOT</version>
 
-    <name>Echo</name>
+    <name>Echoer</name>
     <url>https://ricr.dev</url>
 
     <properties>

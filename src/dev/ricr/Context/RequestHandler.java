@@ -29,7 +29,8 @@ public class RequestHandler {
         request = new Request(client, in, firstLine);
         response = new Response(client, out);
       } else {
-        throw new NotValidHttpRequestException("Not a valid http request.");
+//        throw new NotValidHttpRequestException("Not a valid http request.");
+        client.close();
       }
     } catch (IOException e) {
       e.printStackTrace();

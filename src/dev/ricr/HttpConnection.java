@@ -35,11 +35,12 @@ public class HttpConnection implements Runnable {
     Container.addInstance(RequestHandler.class.getName() + Thread.currentThread().getName(), requestHandler);
 
     // both request method and route need to match
-    String requestMethod = requestHandler.getRequest().getMethod();
-    String requestRoute = requestHandler.getRequest().getRoute();
+    if (!this.client.isClosed()) {
+      String requestMethod = requestHandler.getRequest().getMethod();
+      String requestRoute = requestHandler.getRequest().getRoute();
 
-    router.findRoute(requestMethod, requestRoute);
-
+      router.findRoute(requestMethod, requestRoute);
+    }
     // remove all request objects from the container
     Container.removeInstance(RequestHandler.class.getName() + Thread.currentThread().getName());
   }

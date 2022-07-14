@@ -1,4 +1,4 @@
-package dev.ricr.Controllers;
+package dev.ricr.ControllersTest;
 
 import dev.ricr.Annotations.Controller;
 import dev.ricr.Annotations.Get;
@@ -6,11 +6,9 @@ import dev.ricr.Context.Request;
 import dev.ricr.Context.Response;
 
 import java.io.*;
-import java.net.http.WebSocket;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 import java.util.Base64;
 
 // todo for ws use @Websocket

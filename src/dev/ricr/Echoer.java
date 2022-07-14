@@ -1,6 +1,6 @@
 package dev.ricr;
 
-import dev.ricr.Configurations.AppConfigurations;
+import dev.ricr.Configurations.EchoerConfigurations;
 import dev.ricr.Container.Container;
 import dev.ricr.Router.Router;
 
@@ -14,11 +14,22 @@ import java.util.concurrent.Executors;
 public class Echoer {
 
   ServerSocket ss;
-  List<HttpConnection> httpConnections = new LinkedList<>();
+  final List<HttpConnection> httpConnections = new LinkedList<>();
+
+  public Echoer() {
+    init();
+    Router router = new Router();
+
+    // TODO: For serving static assets needs a different way
+//    router.addStatic("/assets", "./assets");
+
+    System.out.println("Server is on and listening on port: " + EchoerConfigurations.APP_PORT);
+    connections(router);
+  }
 
   public void init () {
     try {
-      ss = new ServerSocket(AppConfigurations.PORT);
+      ss = new ServerSocket(EchoerConfigurations.APP_PORT);
 
     } catch (IOException e) {
       e.printStackTrace();
@@ -36,9 +47,11 @@ public class Echoer {
         HttpConnection connection = new HttpConnection(ss.accept(), router);
         this.httpConnections.add(connection);
 
-        for (HttpConnection c : httpConnections) {
-          executorService.execute(c);
-          httpConnections.remove(c);
+        synchronized (httpConnections) {
+          for (HttpConnection c : httpConnections) {
+            executorService.execute(c);
+            httpConnections.remove(c);
+          }
         }
 
       }
@@ -48,14 +61,6 @@ public class Echoer {
   }
 
   public static void main (String[] args) {
-    Echoer main = new Echoer();
-    main.init();
-    Router router = new Router();
-
-    // TODO: For serving static assets needs a different way
-//    router.addStatic("/assets", "./assets");
-
-    System.out.println("Server is on and listening....");
-    main.connections(router);
+    new Echoer();
   }
 }

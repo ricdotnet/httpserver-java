@@ -2,6 +2,7 @@ package dev.ricr.Router;
 
 import dev.ricr.Annotations.Controller;
 import dev.ricr.Annotations.Service;
+import dev.ricr.Configurations.EchoerConfigurations;
 import dev.ricr.Container.Container;
 import dev.ricr.Context.Request;
 import dev.ricr.Context.Response;
@@ -31,9 +32,10 @@ public class Router implements IRouter {
   @Override
   public void buildRoutes () {
     try {
-      Reflections reflections = new Reflections("dev.ricr");
-      Set<Class<?>> classes = reflections.getTypesAnnotatedWith(Controller.class);
-      Set<Class<?>> servicesSet = reflections.getTypesAnnotatedWith(Service.class);
+      Reflections controllersReflection = new Reflections(EchoerConfigurations.CONTROLLERS_PACKAGE);
+      Set<Class<?>> classes = controllersReflection.getTypesAnnotatedWith(Controller.class);
+      Reflections servicesReflection = new Reflections(EchoerConfigurations.SERVICES_PACKAGE);
+      Set<Class<?>> servicesSet = servicesReflection.getTypesAnnotatedWith(Service.class);
 
       for (Class<?> service : servicesSet) {
         Container.addInstance(service.getName(), service.getDeclaredConstructor().newInstance());

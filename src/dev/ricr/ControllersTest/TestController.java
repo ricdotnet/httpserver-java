@@ -1,4 +1,4 @@
-package dev.ricr.Controllers;
+package dev.ricr.ControllersTest;
 
 import com.google.gson.Gson;
 import dev.ricr.Annotations.Controller;

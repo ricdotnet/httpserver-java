@@ -75,6 +75,12 @@ public class TestController {
     }
 
   }
+
+  @Get(path = "/test")
+  public void testing(Request request, Response response) {
+
+    response.send();
+  }
 }
 
 class Person {

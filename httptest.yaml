@@ -1,0 +1,13 @@
+config:
+  target: "http://localhost:4000"
+  tls:
+    rejectUnauthorized: false
+  phases:
+    - duration: 20
+      arrivalRate: 1000
+      name: Initial
+
+scenarios:
+  - flow:
+      - get:
+          url: "/test/test"

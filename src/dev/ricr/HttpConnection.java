@@ -5,6 +5,7 @@ import dev.ricr.Container.*;
 import dev.ricr.Context.RequestHandler;
 import dev.ricr.Router.Router;
 
+import java.io.IOException;
 import java.net.Socket;
 import java.net.SocketException;
 
@@ -42,6 +43,11 @@ public class HttpConnection implements Runnable {
       router.findRoute(requestMethod, requestRoute);
     }
     // remove all request objects from the container
+    try {
+      this.client.close();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
     Container.removeInstance(RequestHandler.class.getName() + Thread.currentThread().getName());
   }
 

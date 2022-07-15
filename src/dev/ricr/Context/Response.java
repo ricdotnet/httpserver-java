@@ -69,8 +69,7 @@ public class Response {
    * Send the response and close the request socket
    */
   public void send () {
-    try {
-      printWriter.println("HTTP/2 " + this.statusCode + " OK");
+      printWriter.println("HTTP/1.1 " + this.statusCode + " OK");
 
       // build headers
       printWriter.println("Access-Control-Allow-Headers: x-prototype-version,x-requested-with");
@@ -84,10 +83,6 @@ public class Response {
       printWriter.println();
       printWriter.println((body == null) ? "{}" : body);
       printWriter.flush();
-      client.close();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
   }
 
   public void end () {

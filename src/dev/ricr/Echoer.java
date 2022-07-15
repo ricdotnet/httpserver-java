@@ -21,7 +21,7 @@ public class Echoer {
     Router router = new Router();
 
     // TODO: For serving static assets needs a different way
-//    router.addStatic("/assets", "./assets");
+//    router.addStatic("/api", "./api");
 
     System.out.println("Server is on and listening on port: " + EchoerConfigurations.APP_PORT);
     connections(router);
@@ -38,11 +38,9 @@ public class Echoer {
 
   private void connections (Router router) {
     try {
-
       System.out.println(Thread.currentThread().getName());
       Container.addInstance(Thread.currentThread().getName(), Thread.currentThread());
       ExecutorService executorService = Executors.newFixedThreadPool(50);
-
       while (true) {
         HttpConnection connection = new HttpConnection(ss.accept(), router);
         this.httpConnections.add(connection);
@@ -53,7 +51,6 @@ public class Echoer {
             httpConnections.remove(c);
           }
         }
-
       }
     } catch (IOException e) {
       e.printStackTrace();

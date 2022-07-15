@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -88,7 +87,7 @@ public class Request {
     this.queries.put(key, value);
   }
 
-  public String getQuery(String key) {
+  public String getQuery (String key) {
     return this.queries.get(key);
   }
 

@@ -1,15 +1,12 @@
 package dev.ricr.Router;
 
-import dev.ricr.Annotations.Get;
 import dev.ricr.Context.Request;
 import dev.ricr.Context.Response;
 
 import java.io.*;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Arrays;
 
 public class StaticRoute {
 
@@ -27,9 +24,17 @@ public class StaticRoute {
   public void serveStatic (Request request, Response response) {
 
     String[] routeParts = request.getRoute().split("/");
+    StringBuilder route = new StringBuilder();
+    if (routeParts.length == 2) {
+      route.append("/").append("index.html");
+    } else {
+      for (int i = 2; i < routeParts.length; i++) {
+        route.append("/").append(routeParts[i]);
+      }
+    }
 
     try {
-      File file = new File(dir + "/" + routeParts[routeParts.length - 1]);
+      File file = new File(dir + route);
 
       BasicFileAttributes basicFileAttributes = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
       if (!basicFileAttributes.isRegularFile()) {
@@ -37,6 +42,21 @@ public class StaticRoute {
       }
 
       String mimeType = Files.probeContentType(Path.of(String.valueOf(file)));
+      if (mimeType == null) {
+        String suffix = String.valueOf(file).substring(String.valueOf(file).lastIndexOf(".") + 1).toLowerCase();
+
+        switch (suffix) {
+          case "js":
+            mimeType = "application/javascript; charset=utf-8";
+            break;
+          case "css":
+            mimeType = "text/css; charset=utf-8";
+            break;
+          case "json":
+            mimeType = "text/json; charset=utf-8";
+            break;
+        }
+      }
 
       PrintWriter writer = response.getPrintWriter();
       BufferedOutputStream bufWriter = response.getBufferedOutputStream();

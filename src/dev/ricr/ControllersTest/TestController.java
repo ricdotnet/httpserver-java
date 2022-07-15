@@ -28,11 +28,11 @@ public class TestController {
     String id = request.getParam("id");
 
     Gson body = new Gson();
-    Person person = body.fromJson(request.getBody(), Person.class);
+//    Person person = body.fromJson(request.getBody(), Person.class);
 
-    System.out.println(person.getName());
-    System.out.println(person.getSurname());
-    System.out.println(person.getAge());
+//    System.out.println(person.getName());
+//    System.out.println(person.getSurname());
+//    System.out.println(person.getAge());
 
     Map<String, Object> resMap = new LinkedHashMap<>();
     resMap.put("id", id);
@@ -42,7 +42,8 @@ public class TestController {
 
     response
         .setStatus(200)
-        .setBody(res.toJson(resMap))
+//        .setBody(res.toJson(resMap))
+        .setBody(request.getBody())
         .send();
   }
 

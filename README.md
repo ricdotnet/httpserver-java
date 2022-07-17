@@ -10,7 +10,8 @@ When somewhat stable I will use on some of my APIs.
 - [x] Multithreaded requests
 - [ ] Response headers
 - [x] Body serializer (json <-> java object) This was achieved with Gson, but I am planning to add some wrappers around it to make it easier for anyone to (de)serialize objects
-- [ ] <b>x-www-form-urlencoded</b> and <b>multipart/form-data</b> support
+- [x] x-www-form-urlencoded
+- [ ] multipart/form-data
 - [x] Better route system (kinda works OK)
 - [x] Route parameters
 - [x] Route query parameters

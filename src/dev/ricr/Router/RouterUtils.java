@@ -7,6 +7,8 @@ import dev.ricr.Context.RequestHandler;
 
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 
 public class RouterUtils {
 
@@ -100,7 +102,7 @@ public class RouterUtils {
 
     for (String pair : queryPairs) {
       String[] keyValue = pair.split("=");
-      requestHandler.getRequest().setQuery(keyValue[0], keyValue[1]);
+      requestHandler.getRequest().setQuery(keyValue[0], URLDecoder.decode(keyValue[1], StandardCharsets.UTF_8));
     }
   }
 

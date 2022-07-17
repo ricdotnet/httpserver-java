@@ -38,7 +38,6 @@ public class Echoer {
 
   private void connections (Router router) {
     try {
-      System.out.println(Thread.currentThread().getName());
       Container.addInstance(Thread.currentThread().getName(), Thread.currentThread());
       ExecutorService executorService = Executors.newFixedThreadPool(50);
       while (true) {

@@ -14,8 +14,8 @@ public class AnotherController {
 
 //    System.out.println(request.getQuery("name"));
 //    System.out.println(request.getHeaders());
-    System.out.println(request.getBody("name"));
-    System.out.println(request.getBody("surname"));
+//    System.out.println(request.getBody("name"));
+//    System.out.println(request.getBody("surname"));
 //    System.out.println(request.getBody("address1"));
 //    System.out.println(request.getBody("address2"));
 //    System.out.println(request.getBody("postcode"));

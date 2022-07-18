@@ -4,13 +4,16 @@ import java.io.*;
 import java.net.Socket;
 import java.net.URLDecoder;
 import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
+// TODO: refactor this class
 public class Request {
 
   private static int BUF_SIZE = 8192;
-  private static int MAX_REQ_SIZE = 512;
+  //  private static int MAX_REQ_SIZE = 512;
+  private static int MAX_REQ_SIZE = 1000000;
   private int readLen;
   private String method;
   private String route;
@@ -163,11 +166,13 @@ public class Request {
         }
       }
 
-      if (getHeader("content-type").equals("application/x-www-form-urlencoded")) {
-        processBody();
+      // this should be used for both formurlencoded and multipart
+      String contentType = getHeader("content-type");
+      if ("application/x-www-form-urlencoded".equals(contentType) || contentType.contains("multipart/form-data")) {
+        processBody(contentType);
       }
 
-      if (getHeader("content-type").equals("application/json")) {
+      if ("application/json".equals(contentType)) {
         processJsonBody(reader);
       }
 
@@ -176,26 +181,69 @@ public class Request {
     }
   }
 
-  private void processBody () {
+  // TODO: if the user uploads a file then the 512 limit will be to large for the memory so
+  // this should also be handled by writing the buffer to a temp file
+  private void processBody (String contentType) {
     long bodySize = Long.parseLong(this.getHeader("content-length"));
-    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-    DataOutputStream daos = new DataOutputStream(baos);
+
+    ByteArrayOutputStream baos = null;
+    DataOutput requestDataOutput = null;
+    RandomAccessFile randomAccessFile = null;
+
     try {
+      if (bodySize < MAX_REQ_SIZE) {
+        baos = new ByteArrayOutputStream();
+        requestDataOutput = new DataOutputStream(baos);
+      } else {
+        randomAccessFile = new RandomAccessFile("./files/tmp", "rw");
+        requestDataOutput = randomAccessFile;
+      }
+
       byte[] buf = new byte[MAX_REQ_SIZE];
       while (this.readLen >= 0 && bodySize > 0) {
         this.readLen = in.read(buf, 0, (int) Math.min(bodySize, MAX_REQ_SIZE));
         bodySize -= this.readLen;
         if (this.readLen > 0) {
-          daos.write(buf, 0, this.readLen);
+          requestDataOutput.write(buf, 0, this.readLen);
         }
       }
 
-      ByteBuffer bbuf = ByteBuffer.wrap(baos.toByteArray(), 0, baos.size());
+      ByteBuffer bbuf;
+      if (baos != null) {
+        bbuf = ByteBuffer.wrap(baos.toByteArray(), 0, baos.size());
+      } else {
+        bbuf = randomAccessFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, randomAccessFile.length());
+        randomAccessFile.seek(0);
+      }
+
       byte[] postBytes = new byte[bbuf.remaining()];
       bbuf.get(postBytes);
-
       String line = new String(postBytes);
-      processFormUrlEncoded(URLDecoder.decode(line, StandardCharsets.UTF_8));
+
+      if ("application/x-www-form-urlencoded".equals(contentType)) {
+        processFormUrlEncoded(URLDecoder.decode(line, StandardCharsets.UTF_8));
+      } else {
+
+        // TODO: Refactor and abstract. this works hardcoded but we dont want that.
+        // we want the app to be all auto and save files for us
+
+        String boundary = "--" + getHeader("content-type").substring("multipart/form-data; boundary=".length());
+
+        byte[] multipart = new byte[MAX_REQ_SIZE];
+        multipart = bbuf.array();
+
+        Object[] starts = findBoundaryStarts(multipart, boundary.getBytes());
+        // file boundary starts at 159 ... 132
+//        BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(multipart, 159 + 125, multipart.length - 159 - 130 - (boundary + "--").length())));
+        bbuf.position(159 + 132);
+        int len = (multipart.length - 159) - (157);
+        byte[] fbuf = new byte[len];
+        bbuf.get(fbuf);
+        FileOutputStream fileOutputStream = new FileOutputStream("./files/image.jpeg");
+        fileOutputStream.write(fbuf);
+        fileOutputStream.flush();
+
+      }
 
     } catch (IOException e) {
       // ignore
@@ -207,6 +255,7 @@ public class Request {
     if (contentLength > 0) {
       for (String kv : body.split("&")) {
         String[] c = kv.split("=");
+        if (c.length < 2) continue; // if someone submits some form field with only key (name) lets ignore that field
         formBody.put(c[0], c[1]);
       }
     }
@@ -240,6 +289,23 @@ public class Request {
       splitbyte++;
     }
     return 0;
+  }
+
+  private Object[] findBoundaryStarts (byte[] req, byte[] boundary) {
+    ArrayList<Integer> starts = new ArrayList<>();
+    for (int i = 0; i < req.length - boundary.length + 1; ++i) {
+      boolean found = true;
+      for (int j = 0; j < boundary.length; ++j) {
+        if (req[i + j] != boundary[j]) {
+          found = false;
+          break;
+        }
+      }
+      if (found) starts.add(i);
+    }
+
+    System.out.println(starts);
+    return starts.toArray();
   }
 
   public Socket getClient () {

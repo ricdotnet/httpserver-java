@@ -2,9 +2,14 @@ package dev.ricr.ControllersTest;
 
 import com.google.gson.Gson;
 import dev.ricr.Annotations.Controller;
+import dev.ricr.Annotations.Get;
 import dev.ricr.Annotations.Post;
 import dev.ricr.Context.Request;
 import dev.ricr.Context.Response;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.*;
 
 @Controller(path = "/another")
 public class AnotherController {
@@ -32,6 +37,35 @@ public class AnotherController {
 //    System.out.println(test.surname);
 
     response.setStatus(200).send();
+  }
+
+  @Get(path = "/image")
+  public void image (Request request, Response response) {
+
+    BufferedInputStream img;
+    try {
+      img = new BufferedInputStream(new FileInputStream("./files/image.jpeg"));
+//    response.setHeader("content-type", "image/jpeg");
+      response.getWriter()
+          .write("HTTP/1.1 200 OK\r\n" +
+              "Content-Type: image/jpeg\r\n" +
+              "Content-Length: " + img.available() + "\r\n" +
+              "\r\n");
+      response.getWriter().flush();
+
+      BufferedOutputStream bufOut = new BufferedOutputStream(request.getClient().getOutputStream());
+
+      while (img.available() > 0) {
+        bufOut.write(img.read());
+      }
+      bufOut.flush();
+    } catch (IOException e) {
+      response.setStatus(404).setBody("image not found").send();
+      return;
+    }
+
+//    response.send();
+
   }
 
 }

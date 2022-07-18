@@ -18,13 +18,13 @@ public class Echoer {
 
   public Echoer() {
     init();
-    Router router = new Router();
 
-    // TODO: For serving static assets needs a different way
-//    router.addStatic("/api", "./api");
+    Router.init();
+    Router.addStatic("/assets", "./files");
+
+    connections(Router.getRouter());
 
     System.out.println("Server is on and listening on port: " + EchoerConfigurations.APP_PORT);
-    connections(router);
   }
 
   public void init () {

@@ -168,6 +168,10 @@ public class Request {
 
       // this should be used for both formurlencoded and multipart
       String contentType = getHeader("content-type");
+      if (null == contentType) {
+        return;
+      }
+
       if ("application/x-www-form-urlencoded".equals(contentType) || contentType.contains("multipart/form-data")) {
         processBody(contentType);
       }
@@ -235,8 +239,8 @@ public class Request {
         Object[] starts = findBoundaryStarts(multipart, boundary.getBytes());
         // file boundary starts at 159 ... 132
 //        BufferedReader reader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(multipart, 159 + 125, multipart.length - 159 - 130 - (boundary + "--").length())));
-        bbuf.position(159 + 132);
-        int len = (multipart.length - 159) - (157);
+        bbuf.position((int) starts[2] + 132);
+        int len = ((int) starts[3] - 1) - ((int) starts[2] + 132);
         byte[] fbuf = new byte[len];
         bbuf.get(fbuf);
         FileOutputStream fileOutputStream = new FileOutputStream("./files/image.jpeg");

@@ -1,6 +1,7 @@
 package dev.ricr.Router;
 
 import dev.ricr.Annotations.Controller;
+import dev.ricr.Annotations.Get;
 import dev.ricr.Annotations.Service;
 import dev.ricr.Configurations.EchoerConfigurations;
 import dev.ricr.Container.Container;
@@ -25,7 +26,7 @@ public class Router implements IRouter {
 
   private static Router router;
 
-  public static void init() {
+  public static void init () {
     router = new Router();
     router.buildRoutes();
   }
@@ -84,8 +85,20 @@ public class Router implements IRouter {
 
           Object c = Container.getInstance(clazz.getName());
 
-          String child = RouterUtils.getAnnotationPath(method, method.getAnnotations()[0].annotationType().getName());
-          children.add(new Route<>(routeMethod, child, method, c));
+          String childPath = method.getAnnotations()[0].annotationType().getName();
+          Class<?>[] middlewares = method.getAnnotation(Get.class).middlewares();
+          String child = RouterUtils.getAnnotationPath(method, childPath);
+          Route<Object> route = new Route<>(routeMethod, child, method, c);
+
+          if (middlewares.length > 0) {
+            for (Class<?> mid : middlewares) {
+              Object midObj = mid.getConstructor().newInstance();
+              Container.addInstance(midObj.getClass().getName(), midObj);
+              route.addMiddleware(midObj.getClass().getName());
+            }
+          }
+
+          children.add(route);
         }
       }
     } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
@@ -160,6 +173,18 @@ public class Router implements IRouter {
       for (Route<Object> route : routesMap.get(parent)) {
         if (RouterUtils.routeMatches(route.getPath(), path) && route.getVerb().equals(method)) {
           try {
+
+            // grab middlewares
+            LinkedList<String> middlewares = route.getMiddlewares();
+            for (String middleware : middlewares) {
+              Object mid = Container.getInstance(middleware);
+              try {
+                mid.getClass().getMethod("run").invoke(mid);
+              } catch (NoSuchMethodException e) {
+                throw new RuntimeException("A middleware needs to implement IMiddleware and have a run() method.");
+              }
+            }
+
             route.getMethod().invoke(route.getController(), routeHandlers);
             return true;
           } catch (IllegalAccessException | InvocationTargetException e) {

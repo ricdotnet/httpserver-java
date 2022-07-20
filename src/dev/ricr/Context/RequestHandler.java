@@ -11,7 +11,7 @@ public class RequestHandler {
   Request request;
   Response response;
 
-  BufferedReader in;
+  BufferedInputStream in;
   BufferedWriter out;
 
   /**
@@ -21,22 +21,29 @@ public class RequestHandler {
    */
   public RequestHandler (Socket client) {
     try {
-      in = new BufferedReader(new InputStreamReader(client.getInputStream()));
+      in = new BufferedInputStream(client.getInputStream());
       out = new BufferedWriter(new OutputStreamWriter(client.getOutputStream()));
 
-      String firstLine = in.readLine();
-      if (isHttpRequest(firstLine)) {
-        request = new Request(client, in, firstLine);
+      StringBuilder firstLine = new StringBuilder();
+      while (true) {
+        char next = (char) in.read();
+        if (next == '\r') {
+          in.read();
+          break;
+        }
+        firstLine.append(next);
+      }
+      String fl = String.valueOf(firstLine);
+      if (isHttpRequest(fl)) {
+        request = new Request(client, in, fl);
         response = new Response(client, out);
       } else {
-//        throw new NotValidHttpRequestException("Not a valid http request.");
-        client.close();
+        throw new NotValidHttpRequestException("Not a valid http request.");
+//        client.close();
       }
     } catch (IOException e) {
       e.printStackTrace();
     }
-
-
   }
 
   // TODO: These two methods below can be even more abstracted to allow for better request and response access

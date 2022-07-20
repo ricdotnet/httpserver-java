@@ -23,10 +23,11 @@ public class Router implements IRouter {
   private final HashMap<String, ArrayList<Route<Object>>> routesMap = new HashMap<>();
   private final HashMap<String, StaticRoute> staticRoutes = new HashMap<>();
 
-  private Router router;
+  private static Router router;
 
-  public Router () {
-    this.buildRoutes();
+  public static void init() {
+    router = new Router();
+    router.buildRoutes();
   }
 
   @Override
@@ -122,15 +123,12 @@ public class Router implements IRouter {
     send404();
   }
 
-  public Router getRouter () {
-    if (router == null) {
-      this.router = new Router();
-    }
+  public static Router getRouter () {
     return router;
   }
 
-  public void addStatic (String path, String dir) {
-    this.staticRoutes.put(path, new StaticRoute(path, dir));
+  public static void addStatic (String path, String dir) {
+    router.staticRoutes.put(path, new StaticRoute(path, dir));
   }
 
   private void serveStatic () {

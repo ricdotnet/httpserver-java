@@ -1,4 +1,4 @@
-package dev.ricr.ControllersTest;
+package Test.ControllersTest;
 
 import com.google.gson.Gson;
 import dev.ricr.Annotations.Controller;
@@ -6,7 +6,7 @@ import dev.ricr.Annotations.Get;
 import dev.ricr.Annotations.Post;
 import dev.ricr.Context.Request;
 import dev.ricr.Context.Response;
-import dev.ricr.Services.TestService;
+import Test.Services.TestService;
 
 import java.io.PrintWriter;
 import java.util.LinkedHashMap;

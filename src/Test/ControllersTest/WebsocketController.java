@@ -1,4 +1,4 @@
-package dev.ricr.ControllersTest;
+package Test.ControllersTest;
 
 import dev.ricr.Annotations.Controller;
 import dev.ricr.Annotations.Get;

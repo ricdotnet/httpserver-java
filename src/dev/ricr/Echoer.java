@@ -20,7 +20,7 @@ public class Echoer {
     init();
 
     Router.init();
-    Router.addStatic("/assets", "./files");
+//    Router.addStatic("/assets", "./files");
 
     connections(Router.getRouter());
 

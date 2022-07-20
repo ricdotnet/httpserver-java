@@ -1,14 +1,11 @@
-package dev.ricr.ControllersTest;
+package Test.ControllersTest;
 
-import com.google.gson.Gson;
 import dev.ricr.Annotations.Controller;
 import dev.ricr.Annotations.Get;
 import dev.ricr.Annotations.Post;
 import dev.ricr.Context.Request;
 import dev.ricr.Context.Response;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.*;
 
 @Controller(path = "/another")

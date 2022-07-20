@@ -1,4 +1,4 @@
-package dev.ricr.Services;
+package Test.Services;
 
 import dev.ricr.Annotations.Service;
 

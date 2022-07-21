@@ -9,6 +9,8 @@ public class EchoerConfigurations {
   public static String CONTROLLERS_PACKAGE = "dev.ricr";
   public static String SERVICES_PACKAGE = "dev.ricr";
 
+  public static Class<?>[] globalMiddlewares;
+
   public static void setAppPort (int appPort) {
     APP_PORT = appPort;
   }

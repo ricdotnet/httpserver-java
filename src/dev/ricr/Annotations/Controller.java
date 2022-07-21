@@ -9,4 +9,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface Controller {
   public String path();
+  public Class<?>[] middlewares() default {};
 }

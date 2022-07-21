@@ -2,6 +2,7 @@ package dev.ricr;
 
 import dev.ricr.Configurations.EchoerConfigurations;
 import dev.ricr.Container.Container;
+import dev.ricr.Middlewares.GlobalMiddleware;
 import dev.ricr.Router.Router;
 
 import java.io.IOException;
@@ -13,6 +14,7 @@ import java.util.concurrent.Executors;
 
 public class Echoer {
 
+  private boolean RUNNING = false;
   ServerSocket ss;
   final List<HttpConnection> httpConnections = new LinkedList<>();
 
@@ -20,11 +22,10 @@ public class Echoer {
     init();
 
     Router.init();
-//    Router.addStatic("/assets", "./files");
 
-    connections(Router.getRouter());
-
+    RUNNING = true;
     System.out.println("Server is on and listening on port: " + EchoerConfigurations.APP_PORT);
+    connections(Router.getRouter());
   }
 
   public void init () {
@@ -40,7 +41,7 @@ public class Echoer {
     try {
       Container.addInstance(Thread.currentThread().getName(), Thread.currentThread());
       ExecutorService executorService = Executors.newFixedThreadPool(50);
-      while (true) {
+      while (RUNNING) {
         HttpConnection connection = new HttpConnection(ss.accept(), router);
         this.httpConnections.add(connection);
 
@@ -54,6 +55,10 @@ public class Echoer {
     } catch (IOException e) {
       e.printStackTrace();
     }
+  }
+
+  public void stop() {
+    this.RUNNING = false;
   }
 
   public static void main (String[] args) {

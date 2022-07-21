@@ -18,7 +18,10 @@ When somewhat stable I will use on some of my APIs.
 - [x] Better route system (kinda works OK)
 - [x] Route parameters
 - [x] Route query parameters
-- [ ] Middlewares
+- [x] Middlewares - sort of implemented but still needs some work (need to update docs still)
+  - global middlewares
+  - controller middlewares
+  - child route level middlewares
 - [ ] WebSockets and EventStreams
 
 ### Good for a try
@@ -37,6 +40,10 @@ public class App {
     EchoerConfigurations.setServicesPackage("your services package");
     //EchoerConfigurations.setServicesPackage("com.example.Services");
 
+    // this is how we add global middlewares
+    // these will run on every request
+    EchoerConfigurations.middlwares = new Class[]{ClassMiddleware.class};
+    
     new Echoer();
   }
 }

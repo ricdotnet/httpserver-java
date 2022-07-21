@@ -82,6 +82,37 @@ public class RouterUtils {
     return null;
   }
 
+  public static Class<?>[] getAnnotationMiddlewares (Method method, String annotationName) {
+    try {
+      Class<?> classType = Class.forName(annotationName);
+
+      if (classType == Get.class) {
+        return method.getAnnotation(Get.class).middlewares();
+      }
+
+      if (classType == Post.class) {
+        return method.getAnnotation(Post.class).middlewares();
+      }
+
+      if (classType == Put.class) {
+        return method.getAnnotation(Put.class).middlewares();
+      }
+
+      if (classType == Patch.class) {
+        return method.getAnnotation(Patch.class).middlewares();
+      }
+
+      if (classType == Delete.class) {
+        return method.getAnnotation(Delete.class).middlewares();
+      }
+
+    } catch (ClassNotFoundException e) {
+      e.printStackTrace();
+    }
+
+    return null;
+  }
+
   private static void saveRouteParams (String current, String visited) {
     String[] currentParts = current.split("/");
     String[] visitedParts = visited.split("/");

@@ -1,7 +1,6 @@
 package dev.ricr.Router;
 
 import dev.ricr.Annotations.Controller;
-import dev.ricr.Annotations.Get;
 import dev.ricr.Annotations.Service;
 import dev.ricr.Configurations.EchoerConfigurations;
 import dev.ricr.Container.Container;
@@ -104,7 +103,7 @@ public class Router implements IRouter {
 
           // for now, I will add a controller middleware to all routes, so it runs on each route call.
           // why? because I did not code a good way of abstracting a parent / controller route 😅
-          Class<?>[] middlewares = method.getAnnotation(Get.class).middlewares();
+          Class<?>[] middlewares = RouterUtils.getAnnotationMiddlewares(method, childPath);
           Class<?>[] mergedMiddlewares = Arrays.copyOf(controllerMiddlewares, middlewares.length + controllerMiddlewares.length);
           System.arraycopy(middlewares, 0, mergedMiddlewares, controllerMiddlewares.length, middlewares.length);
 
@@ -148,19 +147,6 @@ public class Router implements IRouter {
         (RequestHandler) Container.getInstance(RequestHandler.class.getName() + Thread.currentThread().getName());
 
     Object[] routeHandlers = {requestHandler.getRequest(), requestHandler.getResponse()};
-
-    // we need to isolate the request object
-    Object[] requestObject = {routeHandlers[0]};
-
-    // run any global middlewares before the route
-    for (Class<?> middlewareClass : EchoerConfigurations.globalMiddlewares) {
-      try {
-        Object middleware = Container.getInstance(middlewareClass.getName());
-        middleware.getClass().getMethod("run", Request.class).invoke(middleware, requestObject);
-      } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-        throw new RuntimeException(e);
-      }
-    }
 
     try {
       if (isStaticFile(parent, routeHandlers)) return;
@@ -210,23 +196,25 @@ public class Router implements IRouter {
         if (RouterUtils.routeMatches(route.getPath(), path) && route.getVerb().equals(method)) {
           try {
 
-            // grab middlewares
+            // we need to isolate the request object
+            Object[] requestObject = {routeHandlers[0]};
+
+            // invoke any global middleware before the route
+            for (Class<?> middlewareClass : EchoerConfigurations.globalMiddlewares) {
+              Object middleware = Container.getInstance(middlewareClass.getName());
+              middleware.getClass().getMethod("run", Request.class).invoke(middleware, requestObject);
+            }
+
+            // grab route middlewares
             LinkedList<String> middlewares = route.getMiddlewares();
             for (String middleware : middlewares) {
               Object mid = Container.getInstance(middleware);
-              try {
-                // we need to isolate the request object
-                Object[] requestObject = {routeHandlers[0]};
-                mid.getClass().getMethod("run", Request.class).invoke(mid, requestObject);
-              } catch (NoSuchMethodException e) {
-                e.printStackTrace();
-//                throw new RuntimeException("A middleware needs to implement IMiddleware and have a run() method.");
-              }
+              mid.getClass().getMethod("run", Request.class).invoke(mid, requestObject);
             }
 
             route.getMethod().invoke(route.getController(), routeHandlers);
             return true;
-          } catch (IllegalAccessException | InvocationTargetException e) {
+          } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             e.printStackTrace();
           }
         }

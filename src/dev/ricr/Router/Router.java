@@ -28,7 +28,19 @@ public class Router implements IRouter {
 
   public static void init () {
     router = new Router();
+    router.prepareGlobalMiddlewares();
     router.buildRoutes();
+  }
+
+  private void prepareGlobalMiddlewares () {
+    for (Class<?> middlewareClass : EchoerConfigurations.globalMiddlewares) {
+      try {
+        Object middleware = middlewareClass.getConstructor().newInstance();
+        Container.addInstance(middleware.getClass().getName(), middleware);
+      } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+        throw new RuntimeException(e);
+      }
+    }
   }
 
   @Override
@@ -170,6 +182,19 @@ public class Router implements IRouter {
 
   private boolean findMatch (String parent, String path, String method, Object[] routeHandlers) {
     if (routesMap.get(parent) != null) {
+
+      // we need to isolate the request object
+      Object[] requestObject = {routeHandlers[0]};
+
+      for (Class<?> middlewareClass : EchoerConfigurations.globalMiddlewares) {
+        try {
+          Object middleware = Container.getInstance(middlewareClass.getName());
+          middleware.getClass().getMethod("run", Request.class).invoke(middleware, requestObject);
+        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+          throw new RuntimeException(e);
+        }
+      }
+
       for (Route<Object> route : routesMap.get(parent)) {
         if (RouterUtils.routeMatches(route.getPath(), path) && route.getVerb().equals(method)) {
           try {
@@ -179,9 +204,10 @@ public class Router implements IRouter {
             for (String middleware : middlewares) {
               Object mid = Container.getInstance(middleware);
               try {
-                mid.getClass().getMethod("run").invoke(mid);
+                mid.getClass().getMethod("run", Request.class).invoke(mid, requestObject);
               } catch (NoSuchMethodException e) {
-                throw new RuntimeException("A middleware needs to implement IMiddleware and have a run() method.");
+                e.printStackTrace();
+//                throw new RuntimeException("A middleware needs to implement IMiddleware and have a run() method.");
               }
             }
 

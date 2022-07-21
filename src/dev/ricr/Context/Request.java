@@ -22,6 +22,7 @@ public class Request {
   private final HashMap<String, String> headers = new HashMap<>();
   private final HashMap<String, String> params = new HashMap<>();
   private final HashMap<String, String> queries = new HashMap<>();
+  private final HashMap<String, Object> data = new HashMap<>();
 
   private Socket client;
   private BufferedInputStream in;
@@ -119,6 +120,18 @@ public class Request {
 //      return null;
 //    }
     return this.formBody.get(key[0]);
+  }
+
+  public void setData (String key, Object value) {
+    this.data.put(key, value);
+  }
+
+  public Object getData (String key) {
+    return this.data.get(key);
+  }
+
+  public <T> T getData (String key, Class<T> type) {
+    return type.cast(this.data.get(key));
   }
 
   private void processIncomingRequest (BufferedInputStream in) {

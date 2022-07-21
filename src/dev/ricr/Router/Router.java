@@ -19,6 +19,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 
+// TODO: abstract the middleware runner... no need to have the same code 100x times.
+
 public class Router implements IRouter {
 
   private final HashMap<String, ArrayList<Route<Object>>> routesMap = new HashMap<>();
@@ -83,6 +85,7 @@ public class Router implements IRouter {
         }
 
         String path = clazz.getAnnotation(Controller.class).path();
+        Class<?>[] controllerMiddlewares = clazz.getAnnotation(Controller.class).middlewares();
         routesMap.put(path, new ArrayList<>());
 
         ArrayList<Route<Object>> children = routesMap.get(path);
@@ -98,14 +101,22 @@ public class Router implements IRouter {
           Object c = Container.getInstance(clazz.getName());
 
           String childPath = method.getAnnotations()[0].annotationType().getName();
+
+          // for now, I will add a controller middleware to all routes, so it runs on each route call.
+          // why? because I did not code a good way of abstracting a parent / controller route 😅
           Class<?>[] middlewares = method.getAnnotation(Get.class).middlewares();
+          Class<?>[] mergedMiddlewares = Arrays.copyOf(controllerMiddlewares, middlewares.length + controllerMiddlewares.length);
+          System.arraycopy(middlewares, 0, mergedMiddlewares, controllerMiddlewares.length, middlewares.length);
+
           String child = RouterUtils.getAnnotationPath(method, childPath);
           Route<Object> route = new Route<>(routeMethod, child, method, c);
 
-          if (middlewares.length > 0) {
-            for (Class<?> mid : middlewares) {
+          if (mergedMiddlewares.length > 0) {
+            for (Class<?> mid : mergedMiddlewares) {
               Object midObj = mid.getConstructor().newInstance();
-              Container.addInstance(midObj.getClass().getName(), midObj);
+              if (Container.getInstance(midObj.getClass().getName()) == null) {
+                Container.addInstance(midObj.getClass().getName(), midObj);
+              }
               route.addMiddleware(midObj.getClass().getName());
             }
           }
@@ -137,6 +148,19 @@ public class Router implements IRouter {
         (RequestHandler) Container.getInstance(RequestHandler.class.getName() + Thread.currentThread().getName());
 
     Object[] routeHandlers = {requestHandler.getRequest(), requestHandler.getResponse()};
+
+    // we need to isolate the request object
+    Object[] requestObject = {routeHandlers[0]};
+
+    // run any global middlewares before the route
+    for (Class<?> middlewareClass : EchoerConfigurations.globalMiddlewares) {
+      try {
+        Object middleware = Container.getInstance(middlewareClass.getName());
+        middleware.getClass().getMethod("run", Request.class).invoke(middleware, requestObject);
+      } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+        throw new RuntimeException(e);
+      }
+    }
 
     try {
       if (isStaticFile(parent, routeHandlers)) return;
@@ -182,19 +206,6 @@ public class Router implements IRouter {
 
   private boolean findMatch (String parent, String path, String method, Object[] routeHandlers) {
     if (routesMap.get(parent) != null) {
-
-      // we need to isolate the request object
-      Object[] requestObject = {routeHandlers[0]};
-
-      for (Class<?> middlewareClass : EchoerConfigurations.globalMiddlewares) {
-        try {
-          Object middleware = Container.getInstance(middlewareClass.getName());
-          middleware.getClass().getMethod("run", Request.class).invoke(middleware, requestObject);
-        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-          throw new RuntimeException(e);
-        }
-      }
-
       for (Route<Object> route : routesMap.get(parent)) {
         if (RouterUtils.routeMatches(route.getPath(), path) && route.getVerb().equals(method)) {
           try {
@@ -204,6 +215,8 @@ public class Router implements IRouter {
             for (String middleware : middlewares) {
               Object mid = Container.getInstance(middleware);
               try {
+                // we need to isolate the request object
+                Object[] requestObject = {routeHandlers[0]};
                 mid.getClass().getMethod("run", Request.class).invoke(mid, requestObject);
               } catch (NoSuchMethodException e) {
                 e.printStackTrace();

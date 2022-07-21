@@ -1,9 +1,11 @@
 package dev.ricr.Router;
 
 import java.lang.reflect.Method;
+import java.util.LinkedList;
 
 public class Route<T> {
 
+  private final LinkedList<String> middlewares;
   private final String verb;
   private final String path;
   private final Method method;
@@ -14,6 +16,7 @@ public class Route<T> {
     this.path = path;
     this.method = method;
     this.controller = controller;
+    this.middlewares = new LinkedList<>();
   }
 
   public String getVerb () {
@@ -28,7 +31,15 @@ public class Route<T> {
     return this.method;
   }
 
-  public T getController() {
+  public T getController () {
     return this.controller;
+  }
+
+  public void addMiddleware (String middleware) {
+    this.middlewares.add(middleware);
+  }
+
+  public LinkedList<String> getMiddlewares () {
+    return this.middlewares;
   }
 }

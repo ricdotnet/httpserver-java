@@ -9,4 +9,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface Put {
   public String path();
+  public Class<?>[] middlewares() default {};
 }

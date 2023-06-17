@@ -1,7 +1,7 @@
 package dev.ricr.Router;
 
 import dev.ricr.Annotations.*;
-import dev.ricr.Container.Container;
+import dev.ricr.Container.DIContainer;
 import dev.ricr.Context.Methods;
 import dev.ricr.Context.RequestHandler;
 
@@ -118,7 +118,7 @@ public class RouterUtils {
     String[] visitedParts = visited.split("/");
 
     RequestHandler requestHandler =
-        (RequestHandler) Container.getInstance(RequestHandler.class.getName() + Thread.currentThread().getName());
+        (RequestHandler) DIContainer.getInstance().get(RequestHandler.class.getName() + Thread.currentThread().getName());
 
     for (int i = 0; i < currentParts.length; i++) {
       if (currentParts[i].matches("([{][a-zA-Z\\d]+[}])")) {
@@ -129,7 +129,7 @@ public class RouterUtils {
 
   private static void saveRouteQueryParams (String[] queryPairs) {
     RequestHandler requestHandler =
-        (RequestHandler) Container.getInstance(RequestHandler.class.getName() + Thread.currentThread().getName());
+        (RequestHandler) DIContainer.getInstance().get(RequestHandler.class.getName() + Thread.currentThread().getName());
 
     for (String pair : queryPairs) {
       String[] keyValue = pair.split("=");

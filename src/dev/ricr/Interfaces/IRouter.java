@@ -7,7 +7,8 @@ import java.util.HashMap;
 
 public interface IRouter {
 
-  void buildRoutes();
+  private void buildRoutes() {}
+
   HashMap<String, ArrayList<Route<Object>>> getRoutesMap();
 
 }

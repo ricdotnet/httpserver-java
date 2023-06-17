@@ -29,11 +29,11 @@ When somewhat stable I will use on some of my APIs.
 #### Just clone and build and follow the following steps.
 
 ```java
-import dev.ricr.Echoer;
+
 import dev.ricr.Configurations.EchoerConfigurations;
 
 public class App {
-  public static void main (String[] args) {
+  public static void main(String[] args) {
     EchoerConfigurations.setAppPort(4001);
     EchoerConfigurations.setControllersPackage("your controllers package");
     // EchoerConfigurations.setControllersPackage("com.example.Controllers");
@@ -43,7 +43,7 @@ public class App {
     // this is how we add global middlewares
     // these will run on every request
     EchoerConfigurations.middlwares = new Class[]{ClassMiddleware.class};
-    
+
     new Echoer();
   }
 }
@@ -148,12 +148,11 @@ We have the ability to serve static files too. If we save some js/html/images in
 we can then create a route that will serve those files.
 
 ```java
-import dev.ricr.Echoer;
-import dev.ricr.Configurations.EchoerConfigurations;
+
 import dev.ricr.Router.Router;
 
 public class App {
-  public static void main (String[] args) {
+  public static void main(String[] args) {
     // ... all configuration ...
 
     new Echoer();
